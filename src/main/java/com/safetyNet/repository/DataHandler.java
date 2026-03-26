@@ -2,12 +2,10 @@ package com.safetyNet.repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetyNet.model.Data;
-import com.safetyNet.model.Person;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 
 @Component
 public class DataHandler {
@@ -31,13 +29,8 @@ public class DataHandler {
             e.printStackTrace();
         }
     }
-   //recuperer tt les personnes
-    public List<Person> getPersons() {
-        return data.getPersons();
+
+    public Data getData() {
+        return data;
     }
-
-    //find all
-
-
-
 }

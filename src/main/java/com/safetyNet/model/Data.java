@@ -8,12 +8,12 @@ public class Data {
     private List<Medicalrecord>  medicalrecords;
     private List<Firestation> firestations;
 
-
    //on a pas besoin du construteur et par defaut le consparDefaut il est y deajt avec l'objet
 
     public List<Person> getPersons() {
         return persons;
     }
+
 
     public void setPersons(List<Person> persons) {
         this.persons = persons;
