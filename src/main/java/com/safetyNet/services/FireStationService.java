@@ -14,7 +14,6 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class FireStationService {
@@ -31,10 +30,11 @@ public class FireStationService {
     }
 
     // Chercher liste des numero telphone par station
-    public List<String> getEPhonesByStation(String station) {
+    public List<String> getPhonesByStation(String station) {
         List<String> phones = new ArrayList<>();
 
         List<Person> persons = personRepository.findAllPersons();
+
         List<Firestation> firestations = fireStationRepository.findAllStation();
 
         for (Firestation firestation : firestations) {
@@ -53,7 +53,7 @@ public class FireStationService {
     }
 
     //version stream: Chercher liste des numero telphone par station
-    public List<String> getEPhonesByStationByStream(String station) {
+    public List<String> getPhonesByStationByStream(String station) {
         List<Person> persons = personRepository.findAllPersons();
         List<Firestation> firestations = fireStationRepository.findAllStation();
 
@@ -75,8 +75,8 @@ public class FireStationService {
             List<Person> persons = personRepository.findAllPersons();
             List<Firestation> firestations = fireStationRepository.findAllStation();
 
-            //une maps dans une liste pour recuperer plusieurs données
-            List<List<String>> personsAtStation = new ArrayList<>();
+            //une map dans une liste pour recuperer plusieurs données
+            List<Map<String,String>> personsAtStation = new ArrayList<>();
 
             // pour compter le nombre d'adulte et de jeune
             int adultCount = 0;
@@ -99,11 +99,11 @@ public class FireStationService {
                                     if (age >= 18) adultCount++;
                                     else childCount++;
                                     // je crée une Map avec seulement les infos voulues
-                                    List<String> p = new ArrayList<>();
-                                    p.add(person.getFirstName());
-                                    p.add(person.getLastName());
-                                    p.add(person.getAddress());
-                                    p.add(person.getPhone());
+                                    Map<String,String> p = new HashMap<>();
+                                    p.put("first name",person.getFirstName());
+                                    p.put("last name",person.getLastName());
+                                    p.put("adress",person.getAddress());
+                                    p.put("phone",person.getPhone());
                                     personsAtStation.add(p);
 
                                 } catch (DateTimeParseException e) {
@@ -126,6 +126,60 @@ public class FireStationService {
         private int calculateAge(LocalDate birthDate) {
             return Period.between(birthDate, LocalDate.now()).getYears();
         }
-    }
+
+
+
+        //chercher une liste d'enfants par une adresse ainsi leurs membres  sinon une liste vide
+        public Map<String, Object> getChild(String address) {
+            List<Person> persons = personRepository.findAllPersons();
+            List<Medicalrecord> records = medicalrecordRepository.findAllMedical();
+
+            List<Map<String, Object>> children = new ArrayList<>();
+            List<Map<String, String>> members = new ArrayList<>();
+
+            for (Person p : persons) {
+                if (p.getAddress().equals(address)) {
+
+                    Medicalrecord medicalrecord = null; //le cas echant elle retourne une liste vide
+
+                    for (Medicalrecord record : records) {
+                        if (record.getFirstName().equals(p.getFirstName()) &&
+                                record.getLastName().equals(p.getLastName())) {
+                            medicalrecord = record;
+                            break;
+                        } //je m'assure que je suis sur la mm personne
+                    }
+                    //
+                    if (medicalrecord != null) {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                        LocalDate birthDate = LocalDate.parse(medicalrecord.getBirthdate(), formatter);
+                        int age = calculateAge(birthDate);
+                        //si je trouve la bonne personne j calcule l'age
+                        if (age <= 18) {
+                            Map<String, Object> child = new HashMap<>();
+                            child.put("firstName", p.getFirstName());
+                            child.put("lastName", p.getLastName());
+                            child.put("age", age);
+                            children.add(child);
+                        } else {
+                            Map<String, String> member = new HashMap<>();
+                            member.put("firstName", p.getFirstName());
+                            member.put("lastName", p.getLastName());
+                            members.add(member);
+                        }
+                    }
+                }
+            }
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("children", children);
+            result.put("Members", members);
+
+            return result;
+        }
+
+
+
+}
 
 
