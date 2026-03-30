@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class FireStationController {
@@ -19,9 +20,22 @@ public class FireStationController {
     private FireStationService fireStationService;
 
     @GetMapping("/phoneAlert")
-    public List<String> getPhoneNumberer(@RequestParam(name = "station") String station)
+    public List<String> getPhoneNumber(@RequestParam(name = "station") String station)
     {
         return fireStationService.getEPhonesByStation(station);
+    }
+
+
+    @GetMapping("/phoneAlert/stream")
+    public List<String> getPhoneNumberByStream(@RequestParam(name = "station") String station)
+    {
+        return fireStationService.getEPhonesByStationByStream(station);
+    }
+
+
+    @GetMapping("/firestation")
+    public Map<String, Object> getPersonsByStation(@RequestParam(name = "stationNumber") String station){
+        return fireStationService.getPersonsByStation(station);
     }
 }
 
