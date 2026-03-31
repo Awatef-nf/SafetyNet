@@ -14,6 +14,7 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class FireStationService {
@@ -122,6 +123,43 @@ public class FireStationService {
 
             return result;
         }
+
+//    public List<String> infoStationNumber(String station) {     //Méthode qui retourne une liste de String
+//
+//        List<Person> areaPerson = fireStationRepository.findAllStation().stream()  // on récupére en premier toute les firestations pour les transformer en stream
+//                .filter(firestation -> firestation.getStation().equals(station))    //on filtre, si station est égal à celle demandée on la garde
+//                .flatMap(firestation -> {   //Idem qu'une boucle for, mais là on récupére toutes les données pour les mettres à plat dans une seule liste
+//                    String firestationAddress = firestation.getAddress();   //on stock l'address dans une variable
+//                    return personRepository.findAllPersons().stream()   //on récupére toutes les personnes
+//                            .filter(person -> person.getAddress().equals(firestationAddress));  //si l'address de la personne est égal à la station on la garde
+//                })
+//                .collect(Collectors.toList());  //on récupére tout et on le met dans une liste et on la renvoit
+//        long adults = areaPerson.stream()
+//                .filter(person -> {     // on filtre dans person
+//                    return medicalrecordRepository.findAllMedical().stream() //on recupere tout medicalrecord
+//                            .filter(medicalrecord -> medicalrecord.getFirstName().equals(person.getFirstName()) //on filtre par nom et prenom egal de medicalrecord et person
+//                                    && medicalrecord.getLastName().equals(person.getLastName()))
+//                            .findFirst()    //on ne cherche que le premier egal
+//                            .map(me(medicalrecord.getBirthdate()) >= 18) //on garde que ceux egal et superieur a 18
+//                            .orElse(false);
+//                })
+//                .count();   //on comptabilise
+//
+//        long children = areaPerson.size() - adults;
+//
+//        List<String> infos = areaPerson.stream()
+//                .map(person -> person.getFirstName() + " " + person.getLastName() + " " + person.getAddress() + " " + person.getPhone())
+//                .collect(Collectors.toList());
+//
+//        // ✅ Ajoute le compte
+//        infos.add("Nombres d'adultes : " + adults);
+//        infos.add("Nombres d'enfants : " + children);
+//
+//        return infos;
+//    }
+
+
+
         // Méthode utilitaire pour calculer l'âge
         private int calculateAge(LocalDate birthDate) {
             return Period.between(birthDate, LocalDate.now()).getYears();
@@ -149,19 +187,19 @@ public class FireStationService {
                             break;
                         } //je m'assure que je suis sur la mm personne
                     }
-                    //
                     if (medicalrecord != null) {
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
                         LocalDate birthDate = LocalDate.parse(medicalrecord.getBirthdate(), formatter);
                         int age = calculateAge(birthDate);
                         //si je trouve la bonne personne j calcule l'age
                         if (age <= 18) {
+                            //je crée une map our mettre dedans toutes les informations
                             Map<String, Object> child = new HashMap<>();
                             child.put("firstName", p.getFirstName());
                             child.put("lastName", p.getLastName());
                             child.put("age", age);
                             children.add(child);
-                        } else {
+                        } else { // s'il est adulte je le met avec les membres
                             Map<String, String> member = new HashMap<>();
                             member.put("firstName", p.getFirstName());
                             member.put("lastName", p.getLastName());
@@ -170,7 +208,7 @@ public class FireStationService {
                     }
                 }
             }
-
+            //je stocke le resutat dans une map
             Map<String, Object> result = new HashMap<>();
             result.put("children", children);
             result.put("Members", members);
@@ -179,6 +217,40 @@ public class FireStationService {
         }
 
 
+
+        //liste des habitans correspendants à l'adresse donnée ainsi leurs age et antécedants medicaux
+        public List<Map<String, Object>> getResidentByAdressAndMedicalrecord(String address) {
+
+            List<Person> persons = personRepository.findAllPersons();
+            List<Map<String, Object>> result = new ArrayList<>();
+
+            for (Person p : persons) {
+                if (address.equals(p.getAddress())) {
+
+                    Medicalrecord record = medicalrecordRepository.findMedicalRecord(p.getFirstName(), p.getLastName());
+                    if (record != null) {
+                        Map<String, Object> personRecord = new HashMap<>();
+                        personRecord.put("firstName", p.getFirstName());
+                        personRecord.put("lastName", p.getLastName());
+                        personRecord.put("phone", p.getPhone());
+
+                        // Calcul de l'âge
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+                        LocalDate birthDate = LocalDate.parse(record.getBirthdate(), formatter);
+                        int age = calculateAge(birthDate);
+                        personRecord.put("Age", age);
+
+                        personRecord.put("Allergies", record.getAllergies());
+                        personRecord.put("Medications", record.getMedications());
+
+                        result.add(personRecord);
+                    }
+
+                }
+            }
+
+            return result;
+        }
 
 }
 

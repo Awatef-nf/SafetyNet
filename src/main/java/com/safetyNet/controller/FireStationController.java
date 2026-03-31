@@ -34,6 +34,16 @@ public class FireStationController {
     public Map<String, Object> getPersonsByStation(@RequestParam(name = "stationNumber") String station){
         return fireStationService.getPersonsByStation(station);
     }
+
+    @GetMapping("/childAlert")
+    public Map<String, Object> getChild(@RequestParam(name = "address") String address){
+        return fireStationService.getChild(address);
+    }
+
+    @GetMapping("/fire")
+    public List<Map<String, Object>> getResident(@RequestParam(name = "address") String address){
+        return fireStationService.getResidentByAdressAndMedicalrecord(address);
+    }
 }
 
 
