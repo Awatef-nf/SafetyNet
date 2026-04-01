@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 
@@ -28,6 +29,12 @@ public class PersonController {
     public List<String> getByCity(@RequestParam(name = "city") String city) {
         return personService.getEmailsByCity(city);
     }
+
+    @GetMapping("/firestation")
+    public Map<String, Object> getPersonsByStation(@RequestParam(name = "stationNumber") String station){
+        return personService.getPersonsByStation(station);
+    }
+
 }
 
 
