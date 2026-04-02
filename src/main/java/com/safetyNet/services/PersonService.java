@@ -3,6 +3,7 @@ package com.safetyNet.services;
 import com.safetyNet.model.Firestation;
 import com.safetyNet.model.Medicalrecord;
 import com.safetyNet.model.Person;
+import com.safetyNet.repository.DataHandler;
 import com.safetyNet.repository.FireStationRepository;
 import com.safetyNet.repository.MedicalrecordRepository;
 import com.safetyNet.repository.PersonRepository;
@@ -24,18 +25,38 @@ public class PersonService {
     private PersonRepository personRepository;
     private MedicalrecordRepository medicalrecordRepository;
     private FireStationRepository fireStationRepository;
+    private DataHandler dataHandler;
 
-    public PersonService(MedicalrecordRepository medicalrecordRepository, FireStationRepository fireStationRepository) {
+    public PersonService(MedicalrecordRepository medicalrecordRepository, FireStationRepository fireStationRepository, DataHandler dataHandler) {
         this.medicalrecordRepository = medicalrecordRepository;
         this.fireStationRepository = fireStationRepository;
-    }
-
-    //tous les personnes
-    public List<Person> getAllPersons() {
-        return personRepository.findAllPersons();
+        this.dataHandler = dataHandler;
     }
 
 //===================================================================================================================//
+//++++++++++++++++++++++++++++++++++++++++  LES ENDPOINTS +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+    //ajouter une personne
+    public Person addPerson(Person person){
+    dataHandler.getData().getPersons().add(person);
+    return person;
+}
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+    //modifier une personne
+    public Person modifyPerson(String firstName, String lastName, Person updatedPerson){
+        for(Person person : dataHandler.getData().getPersons()){
+            if(person.getFirstName().equals(firstName) && person.getLastName().equals(lastName)){
+                person.setAddress(updatedPerson.getAddress());
+                person.setPhone(updatedPerson.getPhone());
+            }
+    }return updatedPerson;
+    }
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+//tous les personnes
+    public List<Person> getAllPersons() {
+    return personRepository.findAllPersons();
+}
+//=========================================  LES URLS  ===============================================================//
     //calcule d'age
     public Integer getAge(Person person) {
 
@@ -43,8 +64,7 @@ public class PersonService {
         if (medicalrecord == null || medicalrecord.getBirthdate() == null) {
             return null;
         }
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
         try {
             LocalDate birthDate = LocalDate.parse(medicalrecord.getBirthdate(), formatter);
             return Period.between(birthDate, LocalDate.now()).getYears();
@@ -117,9 +137,33 @@ public class PersonService {
         return result;
     }
 //===================================================================================================================//
+public List<Map<String, Object>> getPersonsInfo(String firstName, String lastName) {
+    List<Person> persons = personRepository.findAllPersons();
+    List<Map<String, Object>> result = new ArrayList<>();
+
+    // Trouver la personne
+    Map<String, Object> personByName = new HashMap<>();
+    List<String> members = new ArrayList<>();
+    //je cherche les info de la personne
+    for (Person person : persons) {
+        if (person.getFirstName().equals(firstName) && person.getLastName().equals(lastName)) {
+            Medicalrecord medicalrecords = medicalrecordRepository.findMedicalRecord(firstName, lastName);
+            personByName.put("firstName", person.getFirstName());
+            personByName.put("address", person.getAddress());
+            personByName.put("age", getAge(person));
+            personByName.put("email", person.getEmail());
+            personByName.put("MedicalRecord", medicalrecords.getMedications());
+        } else if(person.getLastName().equals(lastName)) {
+        // Membres du même foyer
+        members.add( person.getFirstName());
+        }
+        }
+            if (!members.isEmpty()) { personByName.put("members", members);}
+            if (!personByName.isEmpty()) { result.add(personByName);}
+        return result;
+        }
 }
-
-
+//===================================================================================================================//
 
 
 

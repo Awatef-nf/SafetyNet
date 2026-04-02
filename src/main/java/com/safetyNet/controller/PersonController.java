@@ -24,6 +24,8 @@ public class PersonController {
         return personService.getAllPersons();
     }
 
+    @PostMapping("/person")
+    public Person addPerson(@RequestBody Person person){ return personService.addPerson(person);}
 
     @GetMapping("/communityEmail")
     public List<String> getByCity(@RequestParam(name = "city") String city) {
@@ -33,6 +35,11 @@ public class PersonController {
     @GetMapping("/firestation")
     public Map<String, Object> getPersonsByStation(@RequestParam(name = "stationNumber") String station){
         return personService.getPersonsByStation(station);
+    }
+
+    @GetMapping("/personInfo")
+    public List<Map<String,Object>> getpersonInfo(@RequestParam String firstName, @RequestParam String lastName){
+        return personService.getPersonsInfo(firstName,lastName);
     }
 
 }
