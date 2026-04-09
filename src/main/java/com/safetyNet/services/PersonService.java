@@ -14,10 +14,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class PersonService {
@@ -33,6 +30,7 @@ public class PersonService {
         this.dataHandler = dataHandler;
     }
 
+
 //===================================================================================================================//
 //++++++++++++++++++++++++++++++++++++++++  LES ENDPOINTS +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
     //ajouter une personne
@@ -41,16 +39,34 @@ public class PersonService {
     return person;
 }
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-    //modifier une personne
-    public Person modifyPerson(String firstName, String lastName, Person updatedPerson){
-        for(Person person : dataHandler.getData().getPersons()){
-            if(person.getFirstName().equals(firstName) && person.getLastName().equals(lastName)){
-                person.setAddress(updatedPerson.getAddress());
-                person.setPhone(updatedPerson.getPhone());
+    public Person updatePerson(String firstName, String lastName, Person updatedPerson) {
+    for (Person person : dataHandler.getData().getPersons()) {
+        if (person.getFirstName().equals(firstName) &&
+                person.getLastName().equals(lastName)) {
+            person.setFirstName(updatedPerson.getFirstName());
+            person.setLastName(updatedPerson.getLastName());
+            person.setAddress(updatedPerson.getAddress());
+            person.setCity(updatedPerson.getCity());
+            person.setEmail(updatedPerson.getEmail());
+            person.setZip(updatedPerson.getZip());
+            person.setPhone(updatedPerson.getPhone());
+            return person;
+        }
+    }return null;
+}
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+    public boolean deletePerson(String firstName,String lastName){
+        List<Person> personList = personRepository.findAllPersons();
+       //Un Iterator te permet de parcourir la liste et de supprimer des éléments en toute sécurité.
+        //la boucle for si en fait remove va pas marcher
+        for(Iterator<Person> iterator = personList.iterator(); iterator.hasNext();) {//crée un itérateur sur la liste.et //vérifie s’il reste un élément.
+            Person person = iterator.next(); // prend l’élément courant
+            if (person.getFirstName().equals(firstName) &&
+                    person.getLastName().equals(lastName)) {
+                iterator.remove(); // supprime l’élément courant en toute sécurité
             }
-    }return updatedPerson;
-    }
-
+        } return true;
+        }
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 //tous les personnes
     public List<Person> getAllPersons() {
@@ -74,7 +90,6 @@ public class PersonService {
         }
     }
 //===================================================================================================================//
-
     public List<Person> findPersonsByAddress(String address) {
         List<Person> persons = personRepository.findAllPersons();
         List<Person> result = new ArrayList<>();
@@ -97,12 +112,12 @@ public class PersonService {
 
         for (Person person : persons) {
             if (person.getCity().equals(city)) {
-                emails.add(person.getEmail());
+                if (!emails.contains(person.getEmail())) {
+                    emails.add(person.getEmail());
+                }
             }
-        }
-    return emails;
+        } return emails;
     }
-
 //===================================================================================================================//
     //version retourner une liste de personnes deservit par une caserne et decompter le nombre d'adulte et enfants
     public Map<String, Object> getPersonsByStation(String station) {
@@ -120,7 +135,7 @@ public class PersonService {
                     if (age != null) {
                         if (age >= 18) adultCount++;
                         else childCount++;
-                        Map<String, String> p = new HashMap<>();
+                        Map<String, String> p = new LinkedHashMap<>();
                         p.put("firstName", person.getFirstName());
                         p.put("lastName", person.getLastName());
                         p.put("address", person.getAddress());
@@ -130,19 +145,19 @@ public class PersonService {
                 }
             }
         }
-        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> result = new LinkedHashMap<>();
         result.put("persons", personsAtStation);
         result.put("adultCount", adultCount);
         result.put("childCount", childCount);
         return result;
     }
 //===================================================================================================================//
-public List<Map<String, Object>> getPersonsInfo(String firstName, String lastName) {
+    public List<Map<String, Object>> getPersonsInfo(String firstName, String lastName) {
     List<Person> persons = personRepository.findAllPersons();
     List<Map<String, Object>> result = new ArrayList<>();
 
     // Trouver la personne
-    Map<String, Object> personByName = new HashMap<>();
+    Map<String, Object> personByName = new LinkedHashMap<>();
     List<String> members = new ArrayList<>();
     //je cherche les info de la personne
     for (Person person : persons) {
@@ -153,6 +168,7 @@ public List<Map<String, Object>> getPersonsInfo(String firstName, String lastNam
             personByName.put("age", getAge(person));
             personByName.put("email", person.getEmail());
             personByName.put("MedicalRecord", medicalrecords.getMedications());
+            personByName.put("Allergies", medicalrecords.getAllergies());
         } else if(person.getLastName().equals(lastName)) {
         // Membres du même foyer
         members.add( person.getFirstName());

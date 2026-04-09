@@ -81,13 +81,13 @@ public class FireStationService {
                         Integer age = personService.getAge(person);
                         if (age != null) {
                             if (age < 18) {
-                                Map<String, Object> child = new HashMap<>();
+                                Map<String, Object> child = new LinkedHashMap<>();
                                 child.put("firstName", person.getFirstName());
                                 child.put("lastName", person.getLastName());
                                 child.put("age", age);
                                 children.add(child);
                             } else {
-                                Map<String, String> member = new HashMap<>();
+                                Map<String, String> member = new LinkedHashMap<>();
                                 member.put("firstName", person.getFirstName());
                                 member.put("lastName", person.getLastName());
                                 members.add(member);
@@ -104,13 +104,14 @@ public class FireStationService {
     //liste des habitans correspendants à l'adresse donnée ainsi leurs age et antécedants medicaux
     public List<Map<String, Object>> getResidentByAdressAndMedicalrecord(String address) {
             List<Person> persons = personService.findPersonsByAddress(address);
+
             List<Map<String, Object>> result = new ArrayList<>();
 
             for (Person p : persons) {
                 if (address.equals(p.getAddress())) {
                     Medicalrecord record = medicalrecordRepository.findMedicalRecord(p.getFirstName(), p.getLastName());
                     if (record != null) {
-                        Map<String, Object> personRecord = new HashMap<>();
+                        Map<String, Object> personRecord = new LinkedHashMap<>();
                         personRecord.put("firstName", p.getFirstName());
                         personRecord.put("lastName", p.getLastName());
                         personRecord.put("phone", p.getPhone());
@@ -132,7 +133,7 @@ public class FireStationService {
     //retournée liste des foyers deservient par une liste de station, cette liste doit etre regouper par adress et chaque foyer: firstName,phone,age
     //et antécédants medicaux
     public Map<String, List<Map<String, String>>> getPersonsByStationsGroupedByAddress(List<String> stations) {
-        Map<String, List<Map<String, String>>> personsByAddress = new HashMap<>();
+        Map<String, List<Map<String, String>>> personsByAddress = new LinkedHashMap<>();
         for (String station : stations) {
             Map<String, Object> personsByStation = personService.getPersonsByStation(station);
             List<Map<String, String>> personsAtStation = (List<Map<String, String>>) personsByStation.get("persons");
